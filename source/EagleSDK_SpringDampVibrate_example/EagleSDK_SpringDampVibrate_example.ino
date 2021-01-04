@@ -36,7 +36,6 @@ const char * IrisControlsAPI::name = "EagleSDK";    // Feel free to change this.
 #include "normalize.h"        // contains a static function to translate between mN of force and motor API commands 
 
 
-
 /////////////////////////
 //       Globals 
 ///////////////////////
