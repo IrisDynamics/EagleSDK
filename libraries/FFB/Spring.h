@@ -27,7 +27,7 @@ class SpringEffect : public Effect {
 
     void update() { 
       //Printl("--Updating Spring");  // TODO remove 
-      int delta = position-center;
+      float delta = position-center;
       if (abs(delta) < null_zone) force = 0;
       else if (position > center) force = (delta - null_zone ) * k;
       else                   force = (delta + null_zone ) * k;

@@ -148,7 +148,7 @@ class ActuatorFeedbackApp : public IrisControlsAPI {
 			
 };
 
-
+#define ACTUATOR_CONTROL_APP_VERSION 11 
 class ActuatorControlApp : public IrisControlsAPI {
 	public: 
 		DualCoreActuator & actuator; 
@@ -165,47 +165,38 @@ class ActuatorControlApp : public IrisControlsAPI {
 		
         ExposedIO magnitude, frequency; 
         SineEffect  sine;
-        
-		ExposedIO 			freq;		
-		ExposedButton test_servo , test_init, get_errors;
-		
+        		
 		ExposedLabel buffer, buffer2;
 		
 		ActuatorControlApp ( DualCoreActuator & act ) : 
 			actuator 	( act ),
-			//title 		( (String(act.name) + "_test_controls").c_str() ),
-			title 		( "--------------------------------" ),
-			center		( "Spring_center", act.Settings.travel*0.1, act.Settings.travel*0.9, 0), 
-			gain		( "Spring_constant", 0, 75, 0),
+			title 		(   "--------------------------------" ),
+			center		(   "Spring_center___________(mm)", act.Settings.travel*0.0001, act.Settings.travel*0.0009, 0), 
+			gain		(   "Spring_constant____(duty/mm)", 0, 30, 0),
 			spring  	( act.mathResult.position, 0) ,
-			damper_slider ( "Damping_constant", 0, 150, 0 ), 
+			damper_slider ( "Damping_constant_(duty-s/mm)", 0, 150, 0 ), 
 			damper 		( act.mathResult.speed, 0) ,
-            force_slider( "Force", -50, 50, 0),   
-			magnitude	( "Sine_magnitude", 0, 150, 0),
-			frequency	( "Sine_frequency", 1, 70000, 1000),
-			freq  		( "Max_Tx_Frequency", 0, 10000, 10000 ),
-			test_servo 	( "Test_servo", 0 ), 
-			test_init 	( "Test_init", -1 ),  
-			get_errors 	( "Get_errors", -1 ),
+            force_slider(   "Force_________________(duty)", -50, 50, 0),   
+			magnitude	(   "Sine_magnitude________(duty)", 0, 150, 0),
+			frequency	(   "Sine_frequency_________(mHz)", 1, 70000, 1000),
 			buffer		( "" ) ,
 			buffer2		( "" ) 
 		{	}
 	
 
-	    int last_freq = 0;
-		
 		int getForce() {
 			return spring.getForce() + force.getForce() + sine.getForce() + damper.getForce();
 		}
-		
-        void run () {			
+		int last_freq=0;
+
+        void run () {			 
 			
 			if ( actuator.new_data() ) {
-				spring.k = -gain.update() / 1000.;
+				spring.k = -gain.update();
 				spring.center = center.update();
 				sine.amplitude ( magnitude.update() );
 				spring.update();
-				damper.adjustK( -damper_slider.update() / 100000. );
+				damper.adjustK( -damper_slider.update() / 100. );
 				damper.update();
 				force.update( force_slider.update() );
 				if (last_freq != frequency.update()) {     
@@ -215,41 +206,7 @@ class ActuatorControlApp : public IrisControlsAPI {
 			}
 			
 			sine.update();
-			
-			if (!IrisControlsAPI::isConnected()) 
-				actuator.servo ( 0 );
-			//if ( test_servo.toggled_on() ) {
-			else actuator.servo ( getForce() );
-			//}
-			// else {
-				// actuator.servo ( 0 );
-			// }
-						///////////////////////////////////////////  100 ms gate
-			if ( millis() - last_gate_f > 100 ) {	
-				last_gate_f = millis();								
-				
-
-				if ( test_servo.pressed() )  {
-					magnitude.set(0);
-					gain.set(0);
-					force_slider.set(0);					
-				}
-
-				if ( get_errors.pressed() ) { 
-					actuator.getErrors(1);
-				}
-				
-				if ( test_init.pressed() ) {
-					int a, b;
-					actuator.initialize(1,a,b);
-				}
-				
-				if ( freq.update() ) {
-					actuator.user_sending_period = constrain ( 1000000 / freq.update(), 100, 100000000 );
-				}
-			}
-		}
-		uint32_t last_gate_f = 0; 		
+		}	
 		
 	    void setup() {
 			buffer.show();
@@ -262,17 +219,11 @@ class ActuatorControlApp : public IrisControlsAPI {
 			frequency.show();
 			frequency.update();
 			sine.start();
-			freq.show();
 			//title.name = (String (actuator.name) + "_test_controls").c_str();
 			title.update ( (String (actuator.name) + "_test_controls").c_str() );
 			title.show();		
 			buffer2.show();
-			
-			// Buttons 
-			//test_servo.show(); 
-			test_init.show();
-			//get_errors.show();
-			test_servo.update(0);
+
         };
 		
         void shutdown() {
@@ -286,11 +237,7 @@ class ActuatorControlApp : public IrisControlsAPI {
 			magnitude.hide();
 			frequency.hide();
 			sine.stop();			
-			// Buttons 
-			//test_servo.hide(); 
-			test_init.hide();
-			//get_errors.hide();
-			freq.hide();
+
         };
 		
 };
