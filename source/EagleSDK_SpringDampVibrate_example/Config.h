@@ -4,9 +4,6 @@
  * @brief a config object using the EEPROM and IrisControlsAPI to provide a graphical config window for permanently saved values. 
  */
 #pragma once
-
-#include <PosCtrl.h>
-
 #define EEPROM_VERSION 240
    
 #define ACTUATOR_STROKE_IN_MM         150
@@ -22,11 +19,6 @@ enum {
   actuator0_k,
   actuator1_k,
   actuator2_k,
-
-  pctrl_settings_0,
-  pctrl_settings_1 = pctrl_settings_0 + PosCtrl::eeprom_size,
-  pctrl_settings_2 = pctrl_settings_1 + PosCtrl::eeprom_size,
-
   
   eeprom_version,    
   eeprom_end,
