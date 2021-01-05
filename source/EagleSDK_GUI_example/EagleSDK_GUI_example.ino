@@ -14,8 +14,6 @@ Parsing serial commands from the GUI is also demonstrated.
 #include <IrisControls.h>   // Used to communicate with the IrisControls application 
 #include <Exposed.h>        // Exposed library contains the GUI elements (ie allows variables and functions to be exposed to the GUI)
 const char * IrisControlsAPI::name = "EagleSDK_GUI_example";    // Feel free to change this...it will dictate what shows up on the IrisControls window
-#include "normalize.h"        // contains a static function to translate between mN of force and motor API commands 
-
 
 /////////////////////////
 //       Globals 
