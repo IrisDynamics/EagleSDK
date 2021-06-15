@@ -64,9 +64,6 @@ PosCtrl pctrl[2]
 // ActuatorFeedbackApps display information about an actuator using the IrisControls app. 
 ActuatorFeedbackApp actuator0_info ( actuator0 ); 
 ActuatorFeedbackApp actuator1_info ( actuator1 ); 
-// ActuatorControlApps display basic controls that allow springs and vibrations to be demonstrated 
-ActuatorControlApp actuator0_ctrl ( actuator0 ); 
-ActuatorControlApp actuator1_ctrl ( actuator1 ); 
 DualCoreActuator* actuator_array[2] = {&actuator0, &actuator1};  // create an array to allow the following to be done in a for loop   
   
 // ConfigureApp lists the eeprom save settings state and allows saving new values using IrisControls 
@@ -122,6 +119,9 @@ void setup() {
   pctrl[0].load_settings();   // loads last saved settings from eeprom
   pctrl[1].load_settings();
 
+  pctrl[0].enable(); 
+  pctrl[1].enable(); 
+
   actuator_k[0] = SavedSettings::get( EEPROM_ID::actuator0_k ); 
   actuator_k[1] = SavedSettings::get( EEPROM_ID::actuator1_k ); 
   actuator_k[2] = SavedSettings::get( EEPROM_ID::actuator2_k );   
@@ -166,12 +166,12 @@ void loop() {
 
 // Example of using a position control to find forces for the actuator
 // Note: for this example to work, the position controller tuning parameters must be changed from zero using the config menu in IrisControls. 
-  float example_setpoint_in_mm = example_slider.update()/1000.;  // get the value of the dev slider to use as a position setpoint. 
+  float example_setpoint_in_mm = example_slider.update();  // get the value of the dev slider to use as a position setpoint. 
 
   for (int i=0;i<2;i++) { // run this code for both actuators
+    pctrl[i].setpoint(example_setpoint_in_mm ); // update the position controller setpoint 
     if (actuator_array[i]->mathResult.is_fresh >= 2 ) {    // check for number of times new data was processed. We check for two sets of data since the actauator contains two cores. 
       actuator_array[i]->mathResult.is_fresh = 0; // clear 'new data' flag
-      pctrl[i].setpoint(example_setpoint_in_mm ); // update the position controller setpoint 
       pctrl[i].run_control();                     // itterate the position controller 
       force[i] = pctrl[i].get_force();            // save the target force 
       force_command[i] = Normalize::mN_to_API (   // find a force command to achieve the target force 
@@ -183,23 +183,6 @@ void loop() {
       // This force command will be sent to the actuator in the following state machine, if the current state is appropriate for sending forces. 
     }
   }  
-
-// Example of implementing a simple spring effect back to zero position
-
-//  for (int i=0;i<2;i++) { // run this code for both actuators
-//    if (actuator_array[i]->mathResult.is_fresh >= 2 ) {    // check for number of times new data was processed. 
-//      actuator_array[i]->mathResult.is_fresh = 0; // clear 'new data' flag            
-//      force[i] = actuator_array[i].getPosition() * -0.01;   // calculate a force based on the current position. 
-//      force_command[i] = Normalize::mN_to_API (   // find a force command to achieve the target force 
-//        force[i], 
-//        actuator_array[i]->mathResult.voltage, 
-//        actuator_array[i]->mathResult.temp, 
-//        actuator_k[i]
-//      );      
-//      // This force command will be sent to the actuator in the following state machine, if the current state is appropriate for sending forces. 
-//    }
-//  }  
-
 
 // An example state machine that will not send forces to the actuators unless IrisControls is connected and the enable button is checked. 
   
@@ -342,10 +325,10 @@ void clearApp() {
   thePod.shutdown();  
   actuator1_info.shutdown();
   actuator0_info.shutdown();  
-  actuator0_ctrl.shutdown();
-  actuator1_ctrl.shutdown();
   eeprom_config.shutdown();
   Serial.send_now();
+
+  example_slider.hide();
   
   pctrl_1_tune_button.hide();
   pctrl_0_tune_button.hide();
@@ -368,8 +351,6 @@ void reset_iriscontrols() {
   
   actuator0_info.setup();
   actuator1_info.setup();
-  actuator0_ctrl.setup();
-  actuator1_ctrl.setup();
 //  actuator2_info.setup();  
   Serial.send_now();
   
@@ -379,6 +360,9 @@ void reset_iriscontrols() {
   pctrl_0_tune_button.show();
   pctrl_1_tune_button.show();
   Serial.send_now();
+
+  
+  example_slider.show();
   
   ic_state = default_view;
 }
