@@ -138,7 +138,12 @@ void setup() {
  * Occasionally (once every 16 ms), the GUI buttons are polled. 
  */
 void loop() {
-  
+
+  // For this example, the position controllers will be left on. The enable button can be used to disabled the motors 
+  pctrl[0].enable(); 
+  pctrl[1].enable(); 
+
+        
   IrisControlsAPI::check();  // parses any incomming serial data from the USB 
 
 // Example of detecting a new conntection to the IrisControls app
@@ -198,11 +203,11 @@ void loop() {
     case default_view: 
       actuator0_info.run();
       actuator1_info.run();
-      if (enabled_button.toggled_on()) {
+      if (enabled_button.toggled_on()) {              
         actuator0.servo( force_command[0] ); 
         actuator1.servo( force_command[1] ); 
       }
-      else { 
+      else {            
         actuator0.servo( 0 );     
         actuator1.servo( 0 );     
       }
@@ -333,6 +338,7 @@ void clearApp() {
   pctrl_1_tune_button.hide();
   pctrl_0_tune_button.hide();
   config_button.hide();
+  enabled_button.update(0);
   enabled_button.hide();
   zero_position_button.hide();
   Serial.send_now();
